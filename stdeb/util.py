@@ -640,6 +640,7 @@ class DebianInfo:
                  use_setuptools = False,
                  guess_conflicts_provides_replaces = False,
                  sdist_dsc_command = None,
+                 test_suite=None,
                  ):
         if cfg_files is NotGiven: raise ValueError("cfg_files must be supplied")
         if module_name is NotGiven: raise ValueError(
@@ -721,6 +722,7 @@ class DebianInfo:
         self.maintainer = ', '.join(parse_vals(cfg,module_name,'Maintainer'))
         self.uploaders = parse_vals(cfg,module_name,'Uploaders')
         self.date822 = get_date_822()
+        self.test_suite = test_suite
 
         build_deps = []
         if use_setuptools:
@@ -1075,6 +1077,9 @@ def build_dsc(debinfo,
     debinfo.percent_symbol = '%'
     rules = RULES_MAIN%debinfo.__dict__
 
+    if debinfo.test_suite:
+        rules = rules + RULES_OVERRIDE_DH_AUTO_TEST
+
     rules = rules.replace('        ','\t')
     rules_fname = os.path.join(debian_dir,'rules')
     fd = open( rules_fname, mode='w')
@@ -1243,6 +1248,12 @@ RULES_MAIN = """\
 
 %(binary_target_lines)s
 """
+
+RULES_OVERRIDE_DH_AUTO_TEST = """\
+ifeq (,$(findstring nocheck, $(DEB_BUILD_OPTIONS)))
+override_dh_auto_test:
+        python setup.py test
+endif"""
 
 RULES_BINARY_TARGET = """
 binary: binary-arch binary-indep

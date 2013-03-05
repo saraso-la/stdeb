@@ -149,6 +149,10 @@ class common_debian_package_command(Command):
         if have_script_entry_points is None:
             have_script_entry_points = self.distribution.has_scripts()
 
+        test_suite = None
+        if hasattr(self.distribution, "test_suite"):
+            test_suite = self.distribution.test_suite
+
         debinfo = DebianInfo(
             cfg_files=cfg_files,
             module_name = module_name,
@@ -167,5 +171,6 @@ class common_debian_package_command(Command):
             use_setuptools = use_setuptools,
             guess_conflicts_provides_replaces=self.guess_conflicts_provides_replaces,
             sdist_dsc_command = self,
+            test_suite = test_suite,
         )
         return debinfo
